@@ -1,0 +1,38 @@
+<div class="cal-header">
+	<button (click)="goToPreviousMonth()" aria-label="Previous month">‹</button>
+	<div class="title">{{ currentMonthStart | date:'MMMM yyyy' }}</div>
+	<div class="actions">
+		<button (click)="goToCurrentMonth()">Today</button>
+		<button (click)="goToNextMonth()" aria-label="Next month">›</button>
+	</div>
+</div>
+
+<p *ngIf="loading">Loading…</p>
+<p class="error" *ngIf="error as err">{{ err }}</p>
+
+<div class="calendar" *ngIf="!loading && !error">
+	<div class="weekdays">
+		<div>Sun</div>
+		<div>Mon</div>
+		<div>Tue</div>
+		<div>Wed</div>
+		<div>Thu</div>
+		<div>Fri</div>
+		<div>Sat</div>
+	</div>
+
+	<div class="grid">
+		<div class="cell" *ngFor="let day of calendarDays; trackBy: trackDay" [class.muted]="!day.inMonth" [class.today]="day.isToday">
+			<div class="date">{{ day.date | date:'d' }}</div>
+			<div class="events">
+				<div class="evt" *ngFor="let e of eventsForDay(day.date); trackBy: trackEvent">
+					<div class="dot"></div>
+					<div class="content">
+						<div class="time">{{ e.start | date:'shortTime' }}</div>
+						<div class="title" [title]="e.title">{{ e.title }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

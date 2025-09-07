@@ -1,17 +1,2 @@
-<h1>Timely Calendar</h1>
-
-<p *ngIf="loading">Loading…</p>
-<p *ngIf="error">{{ error }}</p>
-
-<ul *ngIf="!loading && !error && events.length">
-	<li *ngFor="let e of events" style="margin-bottom: 16px; list-style: none; display: flex; gap: 12px;">
-		<img *ngIf="e.imageUrl" [src]="e.imageUrl" alt="" style="width: 120px; height: auto; border-radius: 8px;">
-		<div>
-			<strong>{{ e.title }}</strong><br>
-			<small>{{ e.start | date:'medium' }}</small>
-			<p style="margin: 6px 0 0 0">{{ e.descriptionShort }}</p>
-		</div>
-	</li>
-</ul>
-
-<p *ngIf="!loading && !error && events.length === 0">No events found.</p>
+<h1>{{ title }}</h1>
+<app-calendar></app-calendar>
