@@ -1,1 +1,25 @@
-/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+:root {
+	/* cores de marca */
+	--brand-green: #6cc24a; /* checkmark Timely */
+	--brand-yellow: #f9c21a; /* CTA amarelo */
+	--accent: #1890ff; /* azul de apoio p/ focos e links */
+
+	/* superfícies e texto */
+	--bg-page: #ffffff;
+	--bg-card: #ffffff;
+	--bg-card-hover: #f8fafc; /* hover sutil */
+	--text: #111827; /* cinza-900 */
+	--text-dim: #4b5563; /* cinza-600 */
+	--border: #e5e7eb; /* cinza-200 */
+	--ring: rgba(249, 194, 26, .35); /* foco quente no amarelo */
+	--weekend-bg: #fff8e6;
+
+	--c1: #6cc24a;
+	--c2: #25a0e7;
+	--c3: #ff7a59;
+	--c4: #9b59b6;
+	--c5: #f9c21a;
+	--c6: #00b894;
+}

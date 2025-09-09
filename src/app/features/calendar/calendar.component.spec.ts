@@ -1,9 +1,11 @@
-import {ComponentFixture, TestBed} from "@angular/core/testing";
+import {ComponentFixture, fakeAsync, TestBed, tick} from "@angular/core/testing";
 import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
 import {NO_ERRORS_SCHEMA} from "@angular/core";
 
 import {CalendarComponent} from "./calendar.component";
 import {TimelyService} from "../../core/services/timely.service";
+import {ReactiveFormsModule} from "@angular/forms";
+import {of} from "rxjs";
 
 describe('CalendarComponent', () => {
 	let fixture: ComponentFixture<CalendarComponent>;
@@ -12,7 +14,10 @@ describe('CalendarComponent', () => {
 
 	beforeEach(async () => {
 		await TestBed.configureTestingModule({
-			imports: [HttpClientTestingModule],
+			imports: [
+				HttpClientTestingModule,
+				ReactiveFormsModule,
+			],
 			declarations: [CalendarComponent],
 			providers: [TimelyService],
 			schemas: [NO_ERRORS_SCHEMA],
@@ -28,7 +33,7 @@ describe('CalendarComponent', () => {
 	afterEach(() => http.verify());
 
 	function flushCalendarInfo(id = 123) {
-		const infoReq = http.expectOne(r => r.url.endsWith('/api/calendars/info'));
+		const infoReq = http.expectOne(r => r.url.includes('/api/calendars/info'));
 		expect(infoReq.request.method).toBe('GET');
 		infoReq.flush({ data: { id } });
 		return id;
@@ -43,13 +48,13 @@ describe('CalendarComponent', () => {
 
 		const id = flushCalendarInfo(123);
 		const evReq = http.expectOne(r => r.url.includes(`/api/calendars/${id}/events`));
-
 		expect(evReq.request.method).toBe('GET');
+
 		evReq.flush({ message: 'boom' }, { status: 500, statusText: 'Server Error' });
 
 		fixture.detectChanges();
 
-		expect(cmp.error).toBe('Unable to load events.');
+		expect(cmp.error).toBe('Server error while loading events. Please try again later.');
 		expect(cmp.loading).toBeFalse();
 		expect(Object.keys(cmp.eventsByDate).length).toBe(0);
 	});
@@ -59,10 +64,8 @@ describe('CalendarComponent', () => {
 
 		const id = flushCalendarInfo(321);
 		const evReq = http.expectOne(r => r.url.includes(`/api/calendars/${id}/events`));
-
 		expect(evReq.request.method).toBe('GET');
 
-		// Service expects month/grouped shape: data.items = { 'YYYY-MM-DD': [events...] }
 		const dayKey = '2025-01-01';
 		evReq.flush({
 			data: {
@@ -84,4 +87,35 @@ describe('CalendarComponent', () => {
 		expect(cmp.eventsByDate[dayKey].length).toBe(1);
 		expect(cmp.eventsByDate[dayKey][0].title).toBe('Sample');
 	});
+
+	it('debounces form changes', fakeAsync(() => {
+		const timely = TestBed.inject(TimelyService);
+		spyOn(timely, 'fetchCalendarInfo').and.returnValue(of({ id: 1, title: 'X' }));
+
+		fixture.detectChanges();
+
+		const initReq = http.expectOne(r =>
+			r.url.includes('/api/calendars/1/events') && !r.params.has('term')
+		);
+		expect(initReq.request.method).toBe('GET');
+		initReq.flush({ data: { items: {} }, total: 0, has_next: false });
+
+		cmp.filtersForm.patchValue({ q: 'a' });
+		cmp.filtersForm.patchValue({ q: 'ab' });
+		cmp.filtersForm.patchValue({ q: 'abc' });
+
+		tick(249);
+		expect(
+			http.match(r => r.url.includes('/api/calendars/1/events')).length
+		).toBe(0);
+
+		tick(1);
+		const debouncedReq = http.expectOne(r =>
+			r.url.includes('/api/calendars/1/events') && r.params.get('term') === 'abc'
+		);
+		expect(debouncedReq.request.method).toBe('GET');
+		debouncedReq.flush({ data: { items: {} }, total: 0, has_next: false });
+
+		expect(http.match(() => true).length).toBe(0);
+	}));
 });

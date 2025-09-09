@@ -1,31 +1,24 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TimelyService} from 'src/app/core/services/timely.service';
 import {TimelyEvent} from 'src/app/core/models/event';
-import {Subscription} from "rxjs";
+import {debounceTime, distinctUntilChanged, Subscription} from "rxjs";
 import {CalendarDay} from "./models/calendar-day.model";
-
-// ---------------------------------------------------------------
-// CalendarComponent
-// ---------------------------------------------------------------
-// Renders a month grid and shows Timely events for each day.
-// The component:
-//   1) Computes month boundaries (and a full week grid around them).
-//   2) Requests events for the month (buffered by ±1 day to catch cross-midnight).
-//   3) Groups events by *local day key* (YYYY-MM-DD) using the configured timezone.
-//   4) Displays events per day in the grid.
-//
-// Notes on time handling:
-// - We always *index* events by a local day key in the user's timezone (Intl.DateTimeFormat with timeZone).
-// - This avoids “Friday becomes Saturday” mistakes when using raw UTC/ISO strings.
-// - The service is responsible for mapping each event into *every* local day it touches.
-//
-// Dependencies (not shown here):
-// - TimelyEvent, CalendarDay interfaces.
-// - TimelyService, which wraps the Timely API and groups events by day.
-// ---------------------------------------------------------------
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {map} from "rxjs/operators";
+import {MatDatepicker} from "@angular/material/datepicker";
 
 type EventsByDate = Record<string, TimelyEvent[]>;
 
+/**
+ * CalendarComponent
+ * -----------------
+ * Renders a month grid and shows events grouped by **local** day keys (YYYY-MM-DD).
+ * The daily grouping is produced by TimelyService (server + client expansion for cross-midnight/multi-day events).
+ *
+ * Notes on performance:
+ * - We cache a single Intl.DateTimeFormat in `dayKeyFmt` to avoid recreating it per cell render.
+ * - We keep `eventsForDay` trivial (pure lookup) so DOM rendering is the only real work.
+ */
 @Component({
 	selector: 'app-calendar',
 	templateUrl: './calendar.component.html',
@@ -33,7 +26,7 @@ type EventsByDate = Record<string, TimelyEvent[]>;
 })
 export class CalendarComponent implements OnInit, OnDestroy {
 
-	/** Time zone used for grouping and rendering day keys. */
+	/** Time zone used to format day keys and to query the API. */
 	timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
 	/** Anchor date for the current view (always normalized to the 1st of the month). */
@@ -56,16 +49,104 @@ export class CalendarComponent implements OnInit, OnDestroy {
 	/** Subscription to the in-flight month request (so we can cancel on navigation). */
 	private reqSub?: Subscription;
 
-	constructor(private timely: TimelyService) {
+	/** Reactive form for server-side filters (search term, date range). */
+	filtersForm!: FormGroup;
+	private filtersSub?: Subscription;
+
+	/** Cached formatter to build local day keys (YYYY-MM-DD) efficiently. */
+	private dayKeyFmt!: Intl.DateTimeFormat;
+
+	private palette: string[];
+
+	private tmpYear = new Date();
+
+	constructor(private timely: TimelyService, private fb: FormBuilder) {
+		const styles = getComputedStyle(document.documentElement);
+		this.palette = [
+			styles.getPropertyValue('--c1').trim(),
+			styles.getPropertyValue('--c2').trim(),
+			styles.getPropertyValue('--c3').trim(),
+			styles.getPropertyValue('--c4').trim(),
+			styles.getPropertyValue('--c5').trim(),
+			styles.getPropertyValue('--c6').trim(),
+		];
 	}
 
 	ngOnInit(): void {
+		this.buildForm();
+
+		this.dayKeyFmt = new Intl.DateTimeFormat('en-CA', {
+			timeZone: this.timezone,
+			year: 'numeric', month: '2-digit', day: '2-digit'
+		});
+
 		this.updateMonthBoundaries();
-		this.loadMonth();
+		this.loadRange(); // initial fetch (month fallback when no date range selected)
 	}
 
 	ngOnDestroy(): void {
 		this.reqSub?.unsubscribe();
+		this.filtersSub?.unsubscribe();
+	}
+
+	/**
+	 * Builds the filter form and subscribes to changes (debounced).
+	 * On any change (q/start/end), we re-fetch the data with the new parameters.
+	 */
+	private buildForm(): void {
+		this.filtersForm = this.fb.group({
+			q: [''],
+			start: [null],
+			end: [null],
+		});
+
+		this.filtersSub = this.filtersForm.valueChanges
+			.pipe(
+				// Normalize values and create a stable comparison key to avoid redundant reloads
+				map(v => {
+					const q = (v?.q || '').trim();
+					const s = v?.start instanceof Date ? v.start : (v?.start ? new Date(v.start) : null);
+					const e = v?.end instanceof Date ? v.end : (v?.end ? new Date(v.end) : null);
+					return {q, start: s, end: e, _k: `${q}|${s?.toDateString() ?? ''}|${e?.toDateString() ?? ''}`};
+				}),
+				debounceTime(250),
+				distinctUntilChanged((a, b) => a._k === b._k)
+			)
+			.subscribe(() => this.loadRange());
+	}
+
+	// -----------------------
+	// Date conversion helpers
+	// -----------------------
+
+	/** Offset (minutes) between UTC and the given time zone for a specific instant */
+	private tzOffsetMin(at: Date, timeZone: string): number {
+		const a = new Date(at.toLocaleString('en-US', {timeZone}));
+		const b = new Date(at.toLocaleString('en-US', {timeZone: 'UTC'}));
+		return (a.getTime() - b.getTime()) / 60000;
+	}
+
+	/** Convert "wall clock time" (in the given timezone) → epoch seconds (UTC) */
+	private wallToUtcSeconds(y: number, m0: number, d: number, hh: number, mm: number, ss: number, tz: string): number {
+		const utcGuess = new Date(Date.UTC(y, m0, d, hh, mm, ss));
+		const offMin = this.tzOffsetMin(utcGuess, tz);
+		return Math.floor((utcGuess.getTime() - offMin * 60000) / 1000);
+	}
+
+	/** Start of local day → epoch seconds (UTC) */
+	private startOfDayUtcSeconds(localDate: Date, tz: string): number {
+		const y = localDate.getFullYear();
+		const m0 = localDate.getMonth();
+		const d = localDate.getDate();
+		return this.wallToUtcSeconds(y, m0, d, 0, 0, 0, tz);
+	}
+
+	/** End of local day (23:59:59) → epoch seconds (UTC) */
+	private endOfDayUtcSeconds(localDate: Date, tz: string): number {
+		const y = localDate.getFullYear();
+		const m0 = localDate.getMonth();
+		const d = localDate.getDate();
+		return this.wallToUtcSeconds(y, m0, d, 23, 59, 59, tz);
 	}
 
 	// -----------------------
@@ -76,21 +157,35 @@ export class CalendarComponent implements OnInit, OnDestroy {
 	goToPreviousMonth() {
 		this.currentMonth = this.addMonthsToDate(this.currentMonth, -1);
 		this.updateMonthBoundaries();
-		this.loadMonth();
+		this.loadRange();
 	}
 
 	/** Go to next month (keeps the day as the 1st). */
 	goToNextMonth() {
 		this.currentMonth = this.addMonthsToDate(this.currentMonth, 1);
 		this.updateMonthBoundaries();
-		this.loadMonth();
+		this.loadRange();
 	}
 
-	/** Jump back to the current month (now, normalized to the 1st). */
-	goToCurrentMonth() {
-		this.currentMonth = this.resetToMonthStart(new Date());
+	openMonthPicker(dp: MatDatepicker<Date>) {
+		dp.open();
+	}
+
+	onYearSelected(d: Date) {
+		this.tmpYear = new Date(this.currentMonthStart);
+		this.tmpYear.setFullYear(d.getFullYear());
+	}
+
+	onMonthSelected(d: Date, dp: MatDatepicker<Date>) {
+		const result = new Date(this.tmpYear);
+		result.setMonth(d.getMonth());
+		result.setDate(1);
+		result.setHours(0, 0, 0, 0);
+
+		this.currentMonth = result;
 		this.updateMonthBoundaries();
-		this.loadMonth();
+		this.loadRange();
+		dp.close();
 	}
 
 	// -----------------------
@@ -98,36 +193,51 @@ export class CalendarComponent implements OnInit, OnDestroy {
 	// -----------------------
 
 	/**
-	 * Loads events for the current month into `eventsByDate`.
+	 * Loads events based on the current filter state:
+	 * - If a date range is selected, we query exactly that range.
+	 * - Otherwise, we query the current month with a ±1 day pad to handle cross-midnight placement.
 	 *
-	 * We query the API using UTC second timestamps and pass the component's
-	 * `timezone`. The service returns a map keyed by local YYYY-MM-DD strings.
-	 *
-	 * Buffering by ±1 day (see `startUtc`/`endUtc` math) lets the service place
-	 * cross-midnight events into the correct local columns.
+	 * The service returns a record keyed by local YYYY-MM-DD strings for the given timezone.
 	 */
-	private loadMonth() {
+	private loadRange() {
 		this.loading = true;
 		this.error = null;
 
-		const y = this.currentMonthStart.getFullYear();
-		const m = this.currentMonthStart.getMonth();
+		const tz = this.timezone;
+		const {q, start, end} = this.filtersForm.value;
 
-		// Query range in *UTC seconds*. We add a 1-day pad before/after
-		// to allow events that cross midnight to be placed correctly.
-		const DAY = 24 * 3600;
-		const startUtc = Date.UTC(y, m, 1, 0, 0, 0) / 1000 - DAY;
-		const endUtc   = Date.UTC(y, m + 1, 1, 0, 0, 0) / 1000 - 1 + DAY;
+		// Normalize possible string values from native <input type="date"> or Material Datepicker
+		const startCtrl: Date | null = start instanceof Date ? start : (start ? new Date(start) : null);
+		const endCtrl: Date | null = end instanceof Date ? end : (end ? new Date(end) : null);
 
-		// Cancel any previous request (prevents race conditions when navigating fast).
+		let startUtc: number;
+		let endUtc: number;
+
+		if (startCtrl || endCtrl) {
+			const startLocal = startCtrl ?? endCtrl!;
+			const endLocal = endCtrl ?? startCtrl!;
+			startUtc = this.startOfDayUtcSeconds(startLocal, tz);
+			endUtc = this.endOfDayUtcSeconds(endLocal, tz);
+		} else {
+			// Month fallback (with a ±1 day pad to allow correct placement of cross-midnight events)
+			const y = this.currentMonthStart.getFullYear();
+			const m = this.currentMonthStart.getMonth();
+			const DAY = 24 * 3600;
+			startUtc = Date.UTC(y, m, 1, 0, 0, 0) / 1000 - DAY;
+			endUtc = Date.UTC(y, m + 1, 1, 0, 0, 0) / 1000 - 1 + DAY;
+		}
+
+		const term = (q || '').trim();
+
+		// Cancel previous in-flight request (prevents races when navigating fast)
 		this.reqSub?.unsubscribe();
-
 		this.reqSub = this.timely.fetchMonthViewGroupedEvents({
-			timezone: this.timezone,
+			timezone: tz,
 			startUtc,
 			endUtc,
 			perPage: 1000,
-			page: 1
+			page: 1,
+			term: term || undefined,
 		})
 			.subscribe({
 				next: (byDate) => {
@@ -135,16 +245,22 @@ export class CalendarComponent implements OnInit, OnDestroy {
 					this.loading = false;
 				},
 				error: (err) => {
-					this.error = err?.userMessage || 'Could not load data.';
+					this.error = err?.userMessage || 'Unable to load events.';
 					this.eventsByDate = {};
 					this.loading = false;
 				}
 			});
 	}
 
+	public retry(): void {
+		this.loadRange();
+	}
+
 	// -----------------------
 	// Date helpers (pure)
 	// -----------------------
+
+	/** Start-of-month for a given date. */
 	private resetToMonthStart(d: Date) {
 		return new Date(d.getFullYear(), d.getMonth(), 1);
 	}
@@ -181,10 +297,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
 		return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 	}
 
-	/**
-	 * Updates `currentMonthStart`/`currentMonthEnd` and builds the full week grid
-	 * that covers the month (so the first row starts on Sunday and the last ends on Saturday).
-	 */
+	/** Rebuilds the visible grid (full weeks around the visible month). */
 	private updateMonthBoundaries() {
 		this.currentMonthStart = this.getFirstDayOfMonth(this.currentMonth);
 		this.currentMonthEnd = this.getLastDayOfMonth(this.currentMonth);
@@ -208,9 +321,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
 	/** Formats a local day key (YYYY-MM-DD) in the component's `timezone`. */
 	private formatDayKeyTZ(date: Date): string {
-		return new Intl.DateTimeFormat('en-CA', {
-			timeZone: this.timezone
-		}).format(date);
+		return this.dayKeyFmt.format(date);
 	}
 
 	// -----------------------
@@ -227,4 +338,25 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
 	/** trackBy: avoid re-rendering event rows unnecessarily. */
 	trackEvent = (_: number, e: TimelyEvent) => e.id ?? e.start;
+
+	/** Simple string hashing function to generate a numeric seed from a title. */
+	private hashSeed(s: string): number {
+		let h = 0;
+		for (let i = 0; i < s.length; i++) {
+			h = (h << 5) - h + s.charCodeAt(i);
+			h |= 0;
+		}
+		return Math.abs(h);
+	}
+
+	/** Maps an event to an index in the color palette (using id if available, otherwise title hash). */
+	private colorIndex(e: { id?: number; title: string }): number {
+		if (e.id != null) return e.id % this.palette.length;
+		return this.hashSeed(e.title) % this.palette.length;
+	}
+
+	/** Resolves the display color for an event from the palette. */
+	getEventColor(e: any): string {
+		return this.palette[this.colorIndex(e)];
+	}
 }

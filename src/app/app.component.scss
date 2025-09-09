@@ -1,0 +1,18 @@
+h1 {
+	font-size: clamp(20px, 3vw, 28px);
+	font-weight: 900;
+	color: var(--brand-green); /* verde fixo */
+	margin: 0 0 16px 0;
+	line-height: 1.2;
+	text-align: center;
+}
+
+h1::after {
+	content: "";
+	display: block;
+	width: 60px;
+	height: 3px;
+	margin: 6px auto 0;
+	border-radius: 2px;
+	background: var(--brand-yellow);
+}

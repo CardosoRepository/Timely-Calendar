@@ -1,35 +1,96 @@
-<div class="cal-header">
-	<button (click)="goToPreviousMonth()" aria-label="Previous month">‹</button>
-	<div class="title">{{ currentMonthStart | date:'MMMM yyyy' }}</div>
-	<div class="actions">
-		<button (click)="goToCurrentMonth()">Today</button>
-		<button (click)="goToNextMonth()" aria-label="Next month">›</button>
+<div class="app-shell">
+	<!-- Filters -->
+	<section class="filters filters-card" [formGroup]="filtersForm" (submit)="$event.preventDefault()">
+		<input
+			type="search"
+			class="input-search"
+			placeholder="Search by title or description"
+			formControlName="q"
+			aria-label="Search events"
+		/>
+
+		<!-- Date range -->
+		<mat-form-field appearance="outline" class="input-range">
+			<mat-label>Date range</mat-label>
+			<mat-date-range-input [rangePicker]="picker">
+				<input matStartDate formControlName="start" placeholder="Start date">
+				<input matEndDate formControlName="end" placeholder="End date">
+			</mat-date-range-input>
+			<mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+			<mat-date-range-picker #picker></mat-date-range-picker>
+		</mat-form-field>
+	</section>
+
+	<!-- Calendar toolbar -->
+	<div class="cal-header compact">
+		<button class="icon-btn" (click)="goToPreviousMonth()" aria-label="Previous month">‹</button>
+
+		<button class="month-trigger"
+				(click)="openMonthPicker(monthDp)"
+				(keydown.enter)="openMonthPicker(monthDp)"
+				(keydown.space)="openMonthPicker(monthDp)">
+			{{ currentMonthStart | date:'MMMM yyyy' }}
+		</button>
+
+		<button class="icon-btn" (click)="goToNextMonth()" aria-label="Next month">›</button>
+
+		<input #dpAnchor
+			   matInput
+			   [matDatepicker]="monthDp"
+			   [value]="currentMonthStart"
+			   class="visually-hidden"/>
+
+		<mat-datepicker
+			#monthDp
+			startView="multi-year"
+			(yearSelected)="onYearSelected($event)"
+			(monthSelected)="onMonthSelected($event, monthDp)"
+			panelClass="month-panel custom-month-datepicker"
+		>
+		</mat-datepicker>
 	</div>
-</div>
 
-<p *ngIf="loading">Loading…</p>
-<p class="error" *ngIf="error as err">{{ err }}</p>
 
-<div class="calendar" *ngIf="!loading && !error">
-	<div class="weekdays">
-		<div>Sun</div>
-		<div>Mon</div>
-		<div>Tue</div>
-		<div>Wed</div>
-		<div>Thu</div>
-		<div>Fri</div>
-		<div>Sat</div>
+	<div *ngIf="loading" class="loading" role="status" aria-live="polite">
+		<span class="spinner" aria-hidden="true"></span>
+		<span>Loading events…</span>
 	</div>
 
-	<div class="grid">
-		<div class="cell" *ngFor="let day of calendarDays; trackBy: trackDay" [class.muted]="!day.inMonth" [class.today]="day.isToday">
-			<div class="date">{{ day.date | date:'d' }}</div>
-			<div class="events">
-				<div class="evt" *ngFor="let e of eventsForDay(day.date); trackBy: trackEvent">
-					<div class="dot"></div>
-					<div class="content">
-						<div class="time">{{ e.start | date:'shortTime' }}</div>
-						<div class="title" [title]="e.title">{{ e.title }}</div>
+
+	<div class="error error-center" *ngIf="error as err">
+		<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<circle cx="12" cy="12" r="10"/>
+			<line x1="12" y1="8" x2="12" y2="13"/>
+			<line x1="12" y1="16" x2="12" y2="16"/>
+		</svg>
+		<p class="msg">{{ err }}</p>
+		<button type="button" class="retry" (click)="retry()">Try again</button>
+	</div>
+
+	<div class="calendar" *ngIf="!loading && !error">
+		<div class="weekdays">
+			<div>Sun</div>
+			<div>Mon</div>
+			<div>Tue</div>
+			<div>Wed</div>
+			<div>Thu</div>
+			<div>Fri</div>
+			<div>Sat</div>
+		</div>
+
+		<div class="grid">
+			<div class="cell" *ngFor="let day of calendarDays; trackBy: trackDay"
+				 [class.muted]="!day.inMonth" [class.today]="day.isToday">
+				<div class="date">{{ day.date | date:'d' }}</div>
+
+				<div class="events">
+					<div class="evt"
+						 *ngFor="let e of eventsForDay(day.date); trackBy: trackEvent">
+						<span class="dot" [style.--evt]="getEventColor(e)"></span>
+						<div class="content">
+							<div class="time">{{ e.start | date:'shortTime' }}</div>
+							<div class="title" [title]="e.title">{{ e.title }}</div>
+						</div>
 					</div>
 				</div>
 			</div>
