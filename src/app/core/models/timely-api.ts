@@ -23,9 +23,3 @@ export interface TimelyApiEvent {
 	end_utc_datetime?: string;
 	images?: TimelyApiImage[];
 }
-
-export interface TimelyApiEventsResponse {
-	total: number;
-	items: TimelyApiEvent[];
-	has_next: boolean;
-}

@@ -1,27 +1,91 @@
-# TimelyCalendar
+# 📅 Timely Calendar (Angular Test Project)
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.11.
+This is a **Frontend Developer Test** project built with **Angular** and **TypeScript**, implementing an interactive calendar that consumes the public [Timely](https://time.ly) API.
 
-## Development server
+## 🚀 Features
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Display events in a monthly calendar view.  
+- Search & filtering:  
+  - 🔍 **Search by title or description**.  
+  - 📅 **Date range filter with date picker**.  
+- Month navigation with **previous/next buttons and month/year selector**.  
+- Event details in a **modal dialog** (title, status, price, event timezone & local time, tickets, description, source link).  
+- Event images displayed when available.  
+- Handles **loading and error states**, with retry option.  
+- Responsive and accessible UI (keyboard navigation, ARIA labels, etc.).  
 
-## Code scaffolding
+## 🛠️ Tech Stack
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- [Angular 13](https://angular.io/) + [TypeScript](https://www.typescriptlang.org/)  
+- [Angular Material](https://material.angular.io/) (Datepicker and UI components)  
+- RxJS for async requests  
+- SCSS for custom styling  
+- Unit testing with **Jasmine + Karma**  
+- Linting with **TSLint/ESLint**  
 
-## Build
+## 📂 Components Overview
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+- **`AppComponent`** → Base layout with header and calendar.  
+- **`CalendarComponent`** → Monthly grid, filters, and event listing.  
+- **`EventDialogComponent`** → Modal dialog with event details.  
+- **`TimelyService`** → Service handling API communication with Timely.  
+- **`ApiKeyInterceptor`** → HTTP interceptor to inject API key automatically.  
+- **Models** (`event.ts`, `calendar-day.model.ts`, etc.) with strong TypeScript typing.  
 
-## Running unit tests
+## 🔗 API Integration
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+1. **Get calendar settings**  
+   `POST https://timelyapp.time.ly/api/calendars/info`  
 
-## Running end-to-end tests
+2. **Fetch events**  
+   `GET https://timelyapp.time.ly/api/calendars/{CALENDAR_ID}/events`  
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+> The project uses `ApiKeyInterceptor` to automatically add the `X-Api-Key` header to all requests.  
 
-## Further help
+## 🧪 Testing
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+- `*.spec.ts` files include unit tests for main components (`App`, `Calendar`, `EventDialog`).  
+- Uses `HttpClientTestingModule` and `HttpTestingController` for request mocking.  
+- Code coverage ensured with **coverage report**.  
+
+## ▶️ Getting Started
+
+### Prerequisites
+- Node.js v14+  
+- Angular CLI v13+  
+
+### Installation
+```bash
+npm install
+```
+
+### Run in development mode
+```bash
+ng serve
+```
+Open [http://localhost:4200](http://localhost:4200).
+
+### Run tests
+```bash
+ng test --code-coverage
+```
+
+### Build for production
+```bash
+ng build --prod
+```
+
+## 📌 Notes
+
+- All code and comments are written in English following best practices.  
+- The UI was designed to be **clean, responsive, and accessible**.  
+- Project is versioned with **Git**.  
+
+## 🔮 Future Improvements
+
+- Implement **lazy loading** for events to handle large datasets efficiently.  
+- Add **dark mode** support.  
+- Provide multiple calendar layouts (e.g., **week view, agenda view**) in addition to the monthly view.  
+- Add **internationalization (i18n)** support for multiple languages.  
+- Extend filtering with more options (e.g., categories, location, status).  
+- Integrate with **CI/CD pipelines** for automated builds and tests.  
