@@ -8,8 +8,8 @@ This is a **Frontend Developer Test** project built with **Angular** and **TypeS
 - Search & filtering:  
   - 🔍 **Search by title or description**.  
   - 📅 **Date range filter with date picker**.
-  - 🗂️ **Categories filter (multi-select)** com busca, paginação (infinite scroll) e ações **Apply/Clear**.
-  - 🏷️ **Tags filter (multi-select)** com o mesmo comportamento (busca, paginação, Apply/Clear).
+  - 🗂️ **Categories filter (multi-select)** with search, pagination (infinite scroll), and **Apply/Clear** actions.  
+  - 🏷️ **Tags filter (multi-select)** with the same behavior (search, pagination, Apply/Clear).  
 
 - Month navigation with **previous/next buttons and month/year selector**.  
 - Event details in a **modal dialog** (title, status, price, event timezone & local time, tickets, description, source link).  
