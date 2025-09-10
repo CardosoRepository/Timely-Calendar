@@ -1,0 +1,43 @@
+<button class="btn btn-chip" [matMenuTriggerFor]="menu" [matMenuTriggerRestoreFocus]="false" (menuOpened)="onOpened()">
+	{{ chipText }}
+</button>
+
+<mat-menu #menu="matMenu" class="cat-menu-panel" [overlapTrigger]="false">
+	<div class="cat-menu" (click)="$event.stopPropagation()">
+
+		<div class="cat-search">
+			<input matInput
+				   type="search"
+				   placeholder="Type to search {{ label.toLowerCase() }}"
+				   [formControl]="search"
+				   (click)="$event.stopPropagation()"
+			/>
+		</div>
+
+		<div class="cat-list" (scroll)="onScroll($event)">
+			<mat-selection-list
+				[multiple]="true"
+				(click)="$event.stopPropagation()"
+				(selectionChange)="onSelectionChange($event)">
+				<mat-list-option
+					*ngFor="let it of items; trackBy: track"
+					[value]="it.id"
+					[selected]="staged.has(it.id)"
+				>
+					{{ it.title?.trim() }}
+				</mat-list-option>
+			</mat-selection-list>
+
+			<button class="btn load-more"
+					*ngIf="hasMore && !loading"
+					(click)="$event.stopPropagation(); load(term, page + 1).subscribe()">Load more
+			</button>
+			<div class="loading" *ngIf="loading">Loading…</div>
+		</div>
+
+		<div class="cat-actions" *ngIf="staged.size">
+			<button class="btn ghost" (click)="clear()">Clear</button>
+			<button class="btn primary" (click)="applyNow()">Apply</button>
+		</div>
+	</div>
+</mat-menu>

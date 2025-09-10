@@ -20,6 +20,24 @@
 			<mat-date-range-picker #picker></mat-date-range-picker>
 		</mat-form-field>
 
+		<!-- Categories -->
+		<app-filter-multi-select
+			label="Categories"
+			[selectedIds]="catIds"
+			[fetchPage]="fetchCategoriesPage"
+			(apply)="onApplyCategories($event)"
+			(cleared)="onApplyCategories([])">
+		</app-filter-multi-select>
+
+		<!-- Tags -->
+		<app-filter-multi-select
+			label="Tags"
+			[selectedIds]="tagIds"
+			[fetchPage]="fetchTagsPage"
+			(apply)="onApplyTags($event)"
+			(cleared)="onApplyTags([])">
+		</app-filter-multi-select>
+
 		<button
 			type="button"
 			class="btn ghost clear-btn"

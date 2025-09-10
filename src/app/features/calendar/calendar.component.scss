@@ -50,7 +50,7 @@ body {
 /* Material form fields – inherit global tokens */
 .input-range,
 .month-picker {
-	min-width: 260px;
+	max-width: 260px;
 }
 
 :host ::ng-deep .mat-form-field-appearance-outline .mat-form-field-flex {
@@ -79,6 +79,14 @@ body {
 
 :host ::ng-deep .mat-form-field-wrapper {
 	padding-bottom: 0;
+}
+
+:host ::ng-deep .mat-form-field {
+	width: 100%;
+}
+
+::ng-deep .mat-menu-panel.cat-menu-panel {
+	max-width: none !important;
 }
 
 /* Nav chips – brand yellow as primary CTA */

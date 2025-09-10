@@ -19,6 +19,7 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {CalendarComponent} from "./features/calendar/calendar.component";
 import {MatDialogModule} from "@angular/material/dialog";
 import {EventDialogComponent} from "./features/calendar/event-dialog/event-dialog.component";
+import {SharedModule} from "./shared/shared.module";
 
 @NgModule({
 	declarations: [
@@ -26,12 +27,13 @@ import {EventDialogComponent} from "./features/calendar/event-dialog/event-dialo
 		CalendarComponent,
 		EventDialogComponent
 	],
-	imports: [
+    imports: [
 		BrowserModule,
+		BrowserAnimationsModule,
 		AppRoutingModule,
 		HttpClientModule,
-		ReactiveFormsModule,
 		FormsModule,
+		ReactiveFormsModule,
 		MatDatepickerModule,
 		MatNativeDateModule,
 		MatFormFieldModule,
@@ -40,10 +42,10 @@ import {EventDialogComponent} from "./features/calendar/event-dialog/event-dialo
 		MatIconModule,
 		MatCheckboxModule,
 		MatButtonModule,
-		BrowserAnimationsModule,
 		MatProgressSpinnerModule,
-		MatDialogModule
-	],
+		MatDialogModule,
+		SharedModule,
+    ],
 	providers: [
 		{ provide: HTTP_INTERCEPTORS, useClass: ApiKeyInterceptor, multi: true }
 	],

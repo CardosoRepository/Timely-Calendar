@@ -3,7 +3,7 @@ import {HttpClient, HttpErrorResponse, HttpParams} from '@angular/common/http';
 import {catchError, map, shareReplay, switchMap} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
 import {environment} from '../../../environments/environment';
-import {TimelyApiCalendarInfo, TimelyApiEvent} from "../models/timely-api";
+import {FilterOption, MaybeData, Page, Taxonomy, TimelyApiCalendarInfo, TimelyApiEvent} from "../models/timely-api";
 import {TimelyEvent} from "../models/event";
 
 interface AppError {
@@ -102,8 +102,10 @@ export class TimelyService {
 	// ---------------- Public API ----------------
 
 	/**
-	 * Fetch month buckets from Timely and re-key by **local** YYYY-MM-DD.
-	 * Expands cross-midnight/multi-day events into every local day they touch.
+	 * Fetch month 'buckets' from Timely, then re-key events by **local** YYYY-MM-DD.
+	 * - Uses `group_by_date=1` so the API returns a date-indexed object.
+	 * - Expands cross-midnight / multi-day events into every local day they touch.
+	 * - Supports optional text search and taxonomy filters (categories/tags).
 	 */
 	fetchMonthViewGroupedEvents(opts: {
 		timezone: string;
@@ -112,11 +114,15 @@ export class TimelyService {
 		perPage?: number;
 		page?: number;
 		term?: string;
+		categories?: number[];
+		tags?: number[]
 	}): Observable<Record<string, TimelyEvent[]>> {
-		const {timezone, startUtc, endUtc, perPage = 1000, page = 1, term} = opts;
+		const {timezone, startUtc, endUtc, perPage = 1000, page = 1, term, categories, tags} = opts;
 
 		return this.fetchCalendarInfo().pipe(
+			// Resolve calendar id then perform the events request
 			switchMap(info => {
+				// Core month view params
 				let params = new HttpParams()
 					.set('view', 'month')
 					.set('group_by_date', '1')
@@ -126,16 +132,21 @@ export class TimelyService {
 					.set('per_page', String(perPage))
 					.set('page', String(page));
 
+				// Optional search + taxonomy filters
 				if (term?.trim()) params = params.set('term', term.trim());
+				if (categories?.length) params = params.set('categories', categories.join(','));
+				if (tags?.length) params = params.set('tags', tags.join(','));
 
 				return this.http.get<any>(`${this.apiBaseUrl}/api/calendars/${info.id}/events`, {params});
 			}),
+			// Normalize payload and expand events across all local days they overlap
 			map((res: any) => {
 				const itemsObj = res?.data?.items ?? res?.items ?? {};
 				if (!itemsObj || typeof itemsObj !== 'object' || Array.isArray(itemsObj)) return {};
 
 				const out: Record<string, TimelyEvent[]> = {};
 
+				// itemsObj is keyed by (UTC) date buckets; flatten and normalize each event
 				for (const [, arr] of Object.entries(itemsObj as Record<string, any[]>)) {
 					const list = Array.isArray(arr) ? arr : [];
 					for (const raw of list) {
@@ -230,7 +241,32 @@ export class TimelyService {
 				const params = new HttpParams().set('timezone', timezone);
 				return this.http.get<{ data: any }>(url, {params});
 			}),
-			map(res => res.data)
+			map(res => res.data),
+			catchError(this.createErrorHandler('events'))
+		);
+	}
+
+	/**
+	 * List filter options (categories, tags).
+	 * Builds the request with optional paging/search and unwraps `{ data: ... }` envelopes.
+	 */
+	listFilter(
+		tax: Taxonomy,
+		opts?: { title?: string; perPage?: number; page?: number }
+	): Observable<Page<FilterOption>> {
+		return this.fetchCalendarInfo().pipe(
+			// Resolve calendar id first (cached via shareReplay upstream)
+			switchMap(info => {
+				// Build query params
+				let params = new HttpParams().set('per_page', String(opts?.perPage ?? 50));
+				if (opts?.page) params = params.set('page', String(opts.page));
+				if (opts?.title?.trim()) params = params.set('title', opts.title.trim());
+
+				const url = `${this.apiBaseUrl}/api/calendars/${info.id}/filters/${tax}`;
+				return this.http.get<MaybeData<Page<FilterOption>>>(url, {params});
+			}),
+			map(res => ((res as any)?.data ?? res) as Page<FilterOption>),
+			catchError(this.createErrorHandler('events'))
 		);
 	}
 }

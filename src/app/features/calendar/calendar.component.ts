@@ -49,6 +49,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
 	/** Temporary year used by month picker. */
 	private tmpYear = new Date();
 
+	selectedCategoryIds = new Set<number>();
+	selectedTagIds = new Set<number>();
+
 	constructor(
 		private timely: TimelyService,
 		private fb: FormBuilder,
@@ -178,7 +181,6 @@ export class CalendarComponent implements OnInit, OnDestroy {
 			startUtc = this.startOfDayUtcSeconds(startLocal, tz);
 			endUtc = this.endOfDayUtcSeconds(endLocal, tz);
 		} else {
-			// mês atual (com almofada de 1 dia nas pontas)
 			const y = this.currentMonthStart.getFullYear();
 			const m = this.currentMonthStart.getMonth();
 			const DAY = 24 * 3600;
@@ -187,6 +189,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
 		}
 
 		const term = (q || '').trim();
+		const categories = Array.from(this.selectedCategoryIds);
+		const tags = Array.from(this.selectedTagIds);
 
 		this.reqSub?.unsubscribe();
 		this.reqSub = this.timely
@@ -197,6 +201,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
 				perPage: 1000,
 				page: 1,
 				term: term || undefined,
+				categories,
+				tags
 			})
 			.subscribe({
 				next: (byDate) => {
@@ -346,4 +352,33 @@ export class CalendarComponent implements OnInit, OnDestroy {
 			autoFocus: false,
 		});
 	}
+
+	// -------- Dynamic taxonomy filters (Categories / Tags) --------
+
+	/** Factory: curries the taxonomy and returns a fetcher used by the UI component. */
+	private makeFetchPage(tax: 'categories' | 'tags' | 'organizers' | 'venues') {
+		return (p: { page: number; perPage: number; title: string }) =>
+			this.timely.listFilter(tax, p);
+	}
+
+	/** Bound data sources for <app-filter-multi-select>. */
+	fetchCategoriesPage = this.makeFetchPage('categories');
+	fetchTagsPage       = this.makeFetchPage('tags');
+
+	/** Expose selected Sets as arrays for template bindings (avoid Array.from in HTML). */
+	get catIds(): number[] { return [...this.selectedCategoryIds]; }
+	get tagIds(): number[] { return [...this.selectedTagIds]; }
+
+	/** Commit selection and refresh calendar. (Remove loadRange() if you want a global "Apply all") */
+	onApplyCategories(ids: number[]): void {
+		this.selectedCategoryIds = new Set(ids);
+		this.loadRange();
+	}
+
+	/** Commit selection and refresh calendar. */
+	onApplyTags(ids: number[]): void {
+		this.selectedTagIds = new Set(ids);
+		this.loadRange();
+	}
+
 }

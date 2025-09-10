@@ -23,3 +23,21 @@ export interface TimelyApiEvent {
 	end_utc_datetime?: string;
 	images?: TimelyApiImage[];
 }
+
+export type FilterOption = {
+	id: number;
+	title: string;
+	color?: string | null;
+};
+
+export type Page<T> = {
+	items: T[];
+	current_page?: number;
+	last_page?: number;
+	next_page_url?: string | null;
+	per_page?: number;
+};
+
+export type MaybeData<T> = T | { data: T };
+
+export type Taxonomy = 'categories' | 'tags' | 'organizers' | 'venues';

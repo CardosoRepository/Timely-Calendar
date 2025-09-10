@@ -1,0 +1,61 @@
+/* Panel: header / scrollable body / footer */
+.cat-menu {
+	width: min(360px, 92vw); /* cap on small screens; still responsive */
+	max-height: 70vh; /* keep inside viewport */
+	display: grid;
+	grid-template-rows: auto 1fr auto; /* header / body / footer */
+	background: #fff;
+	border-radius: 16px;
+	box-shadow: 0 12px 28px rgba(0, 0, 0, .18);
+	overflow: hidden; /* clip inner scroll to keep rounded corners */
+}
+
+.cat-search {
+	padding: .75rem .75rem .5rem;
+	border-bottom: 1px solid rgba(0, 0, 0, .06);
+	background: #fff;
+}
+
+.cat-search input {
+	width: 100%;
+	border: 1px solid rgba(0, 0, 0, .12);
+	border-radius: 10px;
+	padding: .5rem .75rem;
+	outline: 0; /* relies on container focus styles */
+	font-size: .95rem;
+}
+
+/* Scrollable body */
+.cat-list {
+	padding: .5rem .75rem .75rem;
+	overflow-y: auto;
+	overflow-x: hidden;
+	overscroll-behavior: contain; /* optional: prevent page pull-to-refresh/bounce */
+	-webkit-overflow-scrolling: touch; /* optional: smooth iOS scrolling */
+}
+
+.btn.load-more {
+	width: 100%;
+	margin-top: .5rem;
+	padding: .5rem .75rem;
+	border-radius: 999px; /* pill style */
+	border: 1px solid rgba(0, 0, 0, .12);
+	background: #fff;
+}
+
+.loading {
+	text-align: center;
+	padding: .5rem 0;
+	opacity: .75;
+	font-size: .9rem;
+}
+
+/* Footer actions */
+.cat-actions {
+	display: flex;
+	justify-content: space-between;
+	gap: .5rem;
+	padding: .5rem .75rem .75rem;
+	border-top: 1px solid rgba(0, 0, 0, .06);
+	background: #fff;
+}
