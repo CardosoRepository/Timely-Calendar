@@ -7,7 +7,10 @@ This is a **Frontend Developer Test** project built with **Angular** and **TypeS
 - Display events in a monthly calendar view.  
 - Search & filtering:  
   - 🔍 **Search by title or description**.  
-  - 📅 **Date range filter with date picker**.  
+  - 📅 **Date range filter with date picker**.
+  - 🗂️ **Categories filter (multi-select)** com busca, paginação (infinite scroll) e ações **Apply/Clear**.
+  - 🏷️ **Tags filter (multi-select)** com o mesmo comportamento (busca, paginação, Apply/Clear).
+
 - Month navigation with **previous/next buttons and month/year selector**.  
 - Event details in a **modal dialog** (title, status, price, event timezone & local time, tickets, description, source link).  
 - Event images displayed when available.  
