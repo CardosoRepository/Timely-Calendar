@@ -258,6 +258,17 @@ export class CalendarComponent implements OnInit, OnDestroy {
 		this.loadRange();
 	}
 
+	get hasActiveFilters(): boolean {
+		const v = this.filtersForm?.value || {};
+		return !!(v.q?.trim() || v.start || v.end);
+	}
+
+	clearFilters(): void {
+		this.filtersForm.reset({ q: '', start: null, end: null });
+		this.currentMonth = this.resetToMonthStart(new Date());
+		this.updateMonthBoundaries();
+	}
+
 	// -----------------------
 	// Date helpers (pure)
 	// -----------------------

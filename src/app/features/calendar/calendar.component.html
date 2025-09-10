@@ -13,12 +13,20 @@
 		<mat-form-field appearance="outline" class="input-range">
 			<mat-label>Date range</mat-label>
 			<mat-date-range-input [rangePicker]="picker">
-				<input matStartDate formControlName="start" placeholder="Start date">
-				<input matEndDate formControlName="end" placeholder="End date">
+				<input matStartDate formControlName="start" placeholder="Start date" readonly>
+				<input matEndDate formControlName="end" placeholder="End date" readonly>
 			</mat-date-range-input>
 			<mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
 			<mat-date-range-picker #picker></mat-date-range-picker>
 		</mat-form-field>
+
+		<button
+			type="button"
+			class="btn ghost clear-btn"
+			(click)="clearFilters()"
+			[disabled]="!hasActiveFilters">
+			Clear
+		</button>
 	</section>
 
 	<!-- Calendar toolbar -->
@@ -81,7 +89,10 @@
 		<div class="grid">
 			<div class="cell" *ngFor="let day of calendarDays; trackBy: trackDay"
 				 [class.muted]="!day.inMonth" [class.today]="day.isToday">
-				<div class="date">{{ day.date | date:'d' }}</div>
+				<div class="date">
+					<span class="dow" aria-hidden="true">{{ day.date | date:'EEE' }}</span>
+					<span class="day">{{ day.date | date:'d' }}</span>
+				</div>
 
 				<div class="events">
 					<div class="evt"

@@ -126,7 +126,7 @@ $breakpoints: (sm:$bp-sm, md:$bp-md, lg:$bp-lg);
 
 	&.no-image {
 		aspect-ratio: auto;
-		min-height: 88px
+		min-height: 100px
 	}
 
 	img {
@@ -146,7 +146,7 @@ $breakpoints: (sm:$bp-sm, md:$bp-md, lg:$bp-lg);
 		display: grid;
 		align-content: end;
 		gap: $space-2;
-		padding: $space-4;
+		padding: $space-2;
 		background: $hero-overlay-grad
 	}
 
@@ -340,43 +340,6 @@ $breakpoints: (sm:$bp-sm, md:$bp-md, lg:$bp-lg);
 	display: flex;
 	gap: $space-2;
 	justify-content: flex-end
-}
-
-.btn {
-	appearance: none;
-	border: 1px solid #d7d7d7;
-	background: $bg-surface;
-	color: #222;
-	padding: .5625rem .875rem;
-	border-radius: 10px;
-	font-weight: 700;
-	cursor: pointer;
-	transition: transform .08s ease, box-shadow .08s ease, background .15s ease;
-
-	&:hover {
-		transform: translateY(-1px);
-		box-shadow: 0 6px 18px rgba(0, 0, 0, .08)
-	}
-
-	@include focus-ring;
-
-	&.primary {
-		background: #ffce00;
-		border-color: #ffce00;
-
-		&:hover {
-			background: #ffc400
-		}
-
-		&:active {
-			transform: translateY(0);
-			filter: brightness(.98)
-		}
-	}
-
-	&.ghost {
-		background: transparent
-	}
 }
 
 // ================= RESPONSIVE & A11Y =================

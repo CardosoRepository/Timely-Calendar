@@ -74,8 +74,13 @@
 	</mat-dialog-content>
 
 	<mat-dialog-actions class="actions">
-		<a *ngIf="ev.feed_event_url" [href]="ev.feed_event_url" target="_blank" rel="noopener" class="btn">Source</a>
-		<button class="btn ghost" (click)="close()">Close</button>
+		<a *ngIf="ev.feed_event_url"
+		   [href]="ev.feed_event_url"
+		   target="_blank"
+		   rel="noopener"
+		   class="btn primary">Source</a>
+
+		<button type="button" class="btn ghost" (click)="close()">Close</button>
 	</mat-dialog-actions>
 </div>
 

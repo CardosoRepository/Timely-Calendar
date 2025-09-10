@@ -3,7 +3,9 @@
 :root {
 	/* brand colors */
 	--brand-green: #6cc24a;
-	--brand-yellow: #f9c21a;
+	--brand-yellow: #ffce00;
+	--brand-yellow-hover: #ffc400;
+	--brand-dark: #0f2b33;
 	--accent: #1890ff;
 
 	/* text and surfaces */
@@ -12,7 +14,10 @@
 	--bg-card-hover: #f8fafc;
 	--text: #111827;
 	--text-dim: #4b5563;
+	--text-dark: #111;
+	--text-light: #fff;
 	--border: #e5e7eb;
+	--btn-border: #d7d7d7;
 	--ring: rgba(249, 194, 26, .35);
 	--weekend-bg: #fff8e6;
 	--spinner-color: #1d9349;
@@ -23,6 +28,13 @@
 	--c4: #9b59b6;
 	--c5: #f9c21a;
 	--c6: #00b894;
+
+	--btn-radius: 9999px;
+	--btn-h: 44px;
+}
+
+body {
+	font-family: 'Poppins', sans-serif;
 }
 
 .loading {
@@ -38,6 +50,69 @@
 	border-top-color: var(--brand-green, #1d9349);
 	border-radius: 50%;
 	animation: spin .8s linear infinite;
+}
+
+.actions {
+	display: flex;
+	gap: .5rem;
+}
+
+.btn{
+	box-sizing: border-box;
+	appearance: none;
+	display: inline-flex; align-items: center; justify-content: center;
+	height: var(--btn-h);
+	padding: .625rem 1.25rem;
+	min-width: 120px;
+	border-radius: var(--btn-radius);
+	border: 1px solid var(--border);
+	background: #fff;
+	color: var(--text-dark);
+	font: 700 .875rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+	text-decoration: none;
+	cursor: pointer;
+
+	transition: background .15s ease, color .15s ease,
+	border-color .15s ease, transform .08s ease, box-shadow .08s ease;
+
+	&:link, &:visited{ color: inherit; } /* <a> não muda cor após clique */
+
+	&:hover{ transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+	&:active{ transform: translateY(0) scale(.995); }
+
+	&:focus-visible{
+		outline: 0;
+		box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-yellow) 35%, white);
+	}
+
+	&.primary{
+		background: var(--brand-yellow);
+		border-color: var(--brand-yellow);
+		color: var(--text-dark);
+
+		/* hover igual ao pedido: azul + texto branco */
+		&:hover, &:focus-visible{
+			background: var(--brand-dark);
+			border-color: var(--brand-dark);
+			color: var(--text-light);
+		}
+	}
+
+	&.ghost{
+		background: transparent;
+
+		&:hover, &:focus-visible{
+			background: var(--brand-dark);
+			border-color: var(--brand-dark);
+			color: var(--text-light);
+		}
+	}
+}
+
+.actions .btn + .btn {
+	margin-left: .5rem;
 }
 
 @keyframes spin {

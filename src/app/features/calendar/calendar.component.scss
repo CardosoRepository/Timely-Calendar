@@ -124,6 +124,10 @@ body {
 	color: var(--text);
 }
 
+.input-range input[readonly] {
+	caret-color: transparent;
+}
+
 /* ===================== 3) Calendar Header ============================= */
 .cal-header {
 	place-self: center;
@@ -192,6 +196,32 @@ body {
 
 	&:hover {
 		opacity: .85;
+	}
+}
+
+.clear-btn {
+	height: 44px;
+	padding: .625rem 1rem;
+	border-radius: 9999px;
+	border: 1px solid #d7d7d7;
+	background: transparent;
+	font-weight: 700;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background .15s, color .15s, border-color .15s;
+	margin-left: auto;
+
+	&:hover,
+	&:focus-visible {
+		background: var(--brand-dark, #0f2b33);
+		border-color: var(--brand-dark, #0f2b33);
+		color: #fff;
+		outline: 0;
+	}
+
+	&:disabled {
+		opacity: .5;
+		cursor: not-allowed;
 	}
 }
 
@@ -305,9 +335,24 @@ body {
 }
 
 .date {
-	font-size: 12px;
+	display: flex;
+	align-items: center;
+	gap: .375rem;
 	font-weight: 900;
 	color: var(--text-dim);
+	line-height: 1;
+}
+
+/* (Mon/Tue/Wed…) */
+.date .dow {
+	font-size: .75rem;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+
+/* day number */
+.date .day {
+	font-size: 12px;
 }
 
 /* ===================== 6) Events List ================================= */
@@ -325,6 +370,10 @@ body {
 	grid-template-columns: 16px 1fr;
 	gap: 8px;
 	align-items: start;
+	cursor: pointer;
+	border-radius: 0.5rem;
+	padding: 0.4rem;
+	transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
 }
 
 .evt .dot {
@@ -333,9 +382,18 @@ body {
 	border-radius: 50%;
 	margin-top: 8px;
 	background: var(--evt, var(--c1));
-	box-shadow:
-		0 0 0 1px #fff,
-		0 0 0 2px var(--evt, var(--c1));
+	box-shadow: 0 0 0 1px #fff,
+	0 0 0 2px var(--evt, var(--c1));
+}
+
+.evt:hover {
+	background: rgba(0, 0, 0, 0.04);
+	transform: translateX(2px);
+	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05) inset;
+}
+
+.evt:active {
+	transform: translateX(1px) scale(.995);
 }
 
 /* Automatic colorful fallback when no classes are used */
@@ -491,6 +549,13 @@ body {
 @media (max-width: 820px) {
 	.weekdays, .grid {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.date .dow {
+		font-size: .8rem;
+	}
+	.date .day {
+		font-size: 13px;
 	}
 }
 
