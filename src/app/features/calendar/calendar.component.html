@@ -85,7 +85,13 @@
 
 				<div class="events">
 					<div class="evt"
-						 *ngFor="let e of eventsForDay(day.date); trackBy: trackEvent">
+						 *ngFor="let e of eventsForDay(day.date); trackBy: trackEvent"
+						 (click)="openEvent(e)"
+						 role="button"
+						 tabindex="0"
+						 (keydown.enter)="openEvent(e)"
+						 (keydown.space)="openEvent(e)"
+					>
 						<span class="dot" [style.--evt]="getEventColor(e)"></span>
 						<div class="content">
 							<div class="time">{{ e.start | date:'shortTime' }}</div>

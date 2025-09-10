@@ -6,6 +6,8 @@ import {CalendarDay} from "./models/calendar-day.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {map} from "rxjs/operators";
 import {MatDatepicker} from "@angular/material/datepicker";
+import {EventDialogComponent} from "./event-dialog/event-dialog.component";
+import {MatDialog} from "@angular/material/dialog";
 
 type EventsByDate = Record<string, TimelyEvent[]>;
 
@@ -60,7 +62,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
 	private tmpYear = new Date();
 
-	constructor(private timely: TimelyService, private fb: FormBuilder) {
+	constructor(private timely: TimelyService, private fb: FormBuilder, private dialog: MatDialog) {
 		const styles = getComputedStyle(document.documentElement);
 		this.palette = [
 			styles.getPropertyValue('--c1').trim(),
@@ -358,5 +360,19 @@ export class CalendarComponent implements OnInit, OnDestroy {
 	/** Resolves the display color for an event from the palette. */
 	getEventColor(e: any): string {
 		return this.palette[this.colorIndex(e)];
+	}
+
+	openEvent(e: any) {
+		this.dialog.open(EventDialogComponent, {
+			data: {
+				id: e.id,
+				timezone: e.timezone ?? 'America/Sao_Paulo'
+			},
+			width:  'min(1280px, 96vw)',
+			maxWidth: 'none',
+			maxHeight: '92vh',
+			panelClass: 'event-dialog',
+			autoFocus: false
+		});
 	}
 }

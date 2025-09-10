@@ -17,11 +17,14 @@ import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import {ApiKeyInterceptor} from "./core/interceptors/api-key.interceptor";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {CalendarComponent} from "./features/calendar/calendar.component";
+import {MatDialogModule} from "@angular/material/dialog";
+import {EventDialogComponent} from "./features/calendar/event-dialog/event-dialog.component";
 
 @NgModule({
 	declarations: [
 		AppComponent,
-		CalendarComponent
+		CalendarComponent,
+		EventDialogComponent
 	],
 	imports: [
 		BrowserModule,
@@ -38,7 +41,8 @@ import {CalendarComponent} from "./features/calendar/calendar.component";
 		MatCheckboxModule,
 		MatButtonModule,
 		BrowserAnimationsModule,
-		MatProgressSpinnerModule
+		MatProgressSpinnerModule,
+		MatDialogModule
 	],
 	providers: [
 		{ provide: HTTP_INTERCEPTORS, useClass: ApiKeyInterceptor, multi: true }

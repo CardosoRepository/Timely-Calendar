@@ -288,4 +288,16 @@ export class TimelyService {
 		}
 		return fmt;
 	}
+
+	fetchEventRaw(eventId: number | string, timezone = 'America/Sao_Paulo'): Observable<any> {
+		return this.fetchCalendarInfo().pipe(
+			switchMap(info => {
+				const url = `${this.apiBaseUrl}/api/calendars/${info.id}/events/${eventId}`;
+				const params = new HttpParams().set('timezone', timezone);
+				return this.http.get<{ data: any }>(url, { params });
+			}),
+			map(res => res.data)
+		);
+	}
+
 }

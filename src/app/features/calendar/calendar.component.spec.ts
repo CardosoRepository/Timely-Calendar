@@ -6,27 +6,34 @@ import {CalendarComponent} from "./calendar.component";
 import {TimelyService} from "../../core/services/timely.service";
 import {ReactiveFormsModule} from "@angular/forms";
 import {of} from "rxjs";
+import {MatDialog} from "@angular/material/dialog";
 
 describe('CalendarComponent', () => {
 	let fixture: ComponentFixture<CalendarComponent>;
 	let cmp: CalendarComponent;
 	let http: HttpTestingController;
+	let matDialogSpy: jasmine.SpyObj<MatDialog>;
 
 	beforeEach(async () => {
+		matDialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
+		matDialogSpy.open.and.returnValue({ afterClosed: () => of(null) } as any);
+
 		await TestBed.configureTestingModule({
 			imports: [
 				HttpClientTestingModule,
 				ReactiveFormsModule,
 			],
 			declarations: [CalendarComponent],
-			providers: [TimelyService],
+			providers: [
+				TimelyService,
+				{ provide: MatDialog, useValue: matDialogSpy }
+			],
 			schemas: [NO_ERRORS_SCHEMA],
 		}).compileComponents();
 
 		fixture = TestBed.createComponent(CalendarComponent);
 		cmp = fixture.componentInstance;
 		http = TestBed.inject(HttpTestingController);
-
 		cmp.timezone = 'UTC';
 	});
 

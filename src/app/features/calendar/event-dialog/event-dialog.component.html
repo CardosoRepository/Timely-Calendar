@@ -1,0 +1,90 @@
+<div class="evt-modal" *ngIf="eventDetail as ev; else loading">
+
+	<div class="hero" [class.no-image]="!ev.images?.length && !ev.image_url">
+		<img *ngIf="ev.images?.[0]?.sizes?.medium?.url as img; else maybeSingle"
+			 [src]="img" [alt]="ev.title || 'Event image'">
+		<ng-template #maybeSingle>
+			<img *ngIf="ev.image_url" [src]="ev.image_url" [alt]="ev.title || 'Event image'">
+		</ng-template>
+
+		<div class="hero-overlay">
+			<div class="title-row">
+				<h2 class="title">{{ ev.title || 'Event' }}</h2>
+				<span class="badge price" *ngIf="ev.cost_display">{{ ev.cost_display }}</span>
+			</div>
+
+			<div class="chips">
+				<span class="chip" *ngIf="ev.event_status || ev.status">
+					{{ (ev.event_status || ev.status) | titlecase }}
+				</span>
+
+			</div>
+		</div>
+	</div>
+
+	<mat-dialog-content class="body">
+
+		<div class="meta">
+			<div class="meta-item">
+				<svg class="ico" viewBox="0 0 24 24">
+					<path
+						d="M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H5V9h14Zm0-12H5V5h14Z"/>
+					<path d="M7 11h5v5H7z"/>
+				</svg>
+
+				<div>
+					<div class="label label-when">When</div>
+					<div class="value date-when">
+						{{ dateLabelUs(eventDetail.start_utc_datetime, eventTz) }}
+					</div>
+					<div class="sub row-when">
+						<span class="k">Event</span>
+						<span class="v">
+							{{ usTime(eventDetail.start_utc_datetime, eventTz) }}- {{ usTime(eventDetail.end_utc_datetime, eventTz) }}
+						</span>
+					</div>
+
+					<div class="sub row-when" *ngIf="userTz !== eventTz">
+						<span class="k">Local</span>
+						<span class="v">
+							{{ usTime(eventDetail.start_utc_datetime, userTz) }} - {{ usTime(eventDetail.end_utc_datetime, userTz) }}
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="meta-item" *ngIf="ev.tickets_count != null">
+				<svg class="ico" viewBox="0 0 24 24">
+					<path
+						d="M21 10V7a2 2 0 0 0-2-2H5C3.9 5 3 5.9 3 7v3c1.1 0 2 .9 2 2s-.9 2-2 2v3c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-3c-1.1 0-2-.9-2-2s.9-2 2-2Z"/>
+				</svg>
+				<div>
+					<div class="label">Tickets</div>
+					<div class="value">{{ ev.tickets_count }}</div>
+				</div>
+			</div>
+
+			<div class="meta-divider"></div>
+		</div>
+
+		<section class="desc" *ngIf="descHtml as d">
+			<h3 class="section-title">About this event</h3>
+			<div class="desc-content scroll" [innerHTML]="d"></div>
+		</section>
+	</mat-dialog-content>
+
+	<mat-dialog-actions class="actions">
+		<a *ngIf="ev.feed_event_url" [href]="ev.feed_event_url" target="_blank" rel="noopener" class="btn">Source</a>
+		<button class="btn ghost" (click)="close()">Close</button>
+	</mat-dialog-actions>
+</div>
+
+<ng-template #loading>
+	<mat-dialog-content class="body body--loading">
+		<div class="loading" role="status">
+			<span class="spinner"></span>
+			<span>Loading event…</span>
+		</div>
+	</mat-dialog-content>
+</ng-template>
+

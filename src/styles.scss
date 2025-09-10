@@ -1,20 +1,21 @@
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 :root {
-	/* cores de marca */
-	--brand-green: #6cc24a; /* checkmark Timely */
-	--brand-yellow: #f9c21a; /* CTA amarelo */
-	--accent: #1890ff; /* azul de apoio p/ focos e links */
+	/* brand colors */
+	--brand-green: #6cc24a;
+	--brand-yellow: #f9c21a;
+	--accent: #1890ff;
 
-	/* superfícies e texto */
+	/* text and surfaces */
 	--bg-page: #ffffff;
 	--bg-card: #ffffff;
-	--bg-card-hover: #f8fafc; /* hover sutil */
-	--text: #111827; /* cinza-900 */
-	--text-dim: #4b5563; /* cinza-600 */
-	--border: #e5e7eb; /* cinza-200 */
-	--ring: rgba(249, 194, 26, .35); /* foco quente no amarelo */
+	--bg-card-hover: #f8fafc;
+	--text: #111827;
+	--text-dim: #4b5563;
+	--border: #e5e7eb;
+	--ring: rgba(249, 194, 26, .35);
 	--weekend-bg: #fff8e6;
+	--spinner-color: #1d9349;
 
 	--c1: #6cc24a;
 	--c2: #25a0e7;
@@ -22,4 +23,25 @@
 	--c4: #9b59b6;
 	--c5: #f9c21a;
 	--c6: #00b894;
+}
+
+.loading {
+	display: inline-flex;
+	align-items: center;
+	gap: .5rem;
+}
+
+.spinner {
+	width: 24px;
+	height: 24px;
+	border: 3px solid color-mix(in srgb, var(--brand-green, #1d9349) 20%, transparent);
+	border-top-color: var(--brand-green, #1d9349);
+	border-radius: 50%;
+	animation: spin .8s linear infinite;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
 }
