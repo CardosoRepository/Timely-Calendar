@@ -1,94 +1,180 @@
-# 📅 Timely Calendar (Angular Test Project)
+# Timely Calendar
 
-This is a **Frontend Developer Test** project built with **Angular** and **TypeScript**, implementing an interactive calendar that consumes the public [Timely](https://time.ly) API.
+Angular application for browsing events from the Timely API in an interactive monthly calendar.
 
-## 🚀 Features
+The project was built as a front-end test, with focus on API integration, filtering, reusable components, loading/error handling and a responsive interface.
 
-- Display events in a monthly calendar view.  
-- Search & filtering:  
-  - 🔍 **Search by title or description**.  
-  - 📅 **Date range filter with date picker**.
-  - 🗂️ **Categories filter (multi-select)** with search, pagination (infinite scroll), and **Apply/Clear** actions.  
-  - 🏷️ **Tags filter (multi-select)** with the same behavior (search, pagination, Apply/Clear).  
+## Features
 
-- Month navigation with **previous/next buttons and month/year selector**.  
-- Event details in a **modal dialog** (title, status, price, event timezone & local time, tickets, description, source link).  
-- Event images displayed when available.  
-- Handles **loading and error states**, with retry option.  
-- Responsive and accessible UI (keyboard navigation, ARIA labels, etc.).  
+- Monthly calendar view for event browsing
+- Previous and next month navigation
+- Month and year selector
+- Search by event title or description
+- Date range filter with date picker
+- Category filter with multi-select, search, pagination and apply/clear actions
+- Tag filter with multi-select, search, pagination and apply/clear actions
+- Event details modal with:
+  - title
+  - status
+  - price
+  - event timezone
+  - local time
+  - tickets
+  - description
+  - source link
+- Event image display when available
+- Loading and error states
+- Retry option when requests fail
+- Responsive layout
+- Accessibility improvements with keyboard navigation and ARIA labels
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- [Angular 13](https://angular.io/) + [TypeScript](https://www.typescriptlang.org/)  
-- [Angular Material](https://material.angular.io/) (Datepicker and UI components)  
-- RxJS for async requests  
-- SCSS for custom styling  
-- Unit testing with **Jasmine + Karma**  
-- Linting with **TSLint/ESLint**  
+- Angular 13
+- TypeScript
+- Angular Material
+- RxJS
+- SCSS
+- Jasmine
+- Karma
 
-## 📂 Components Overview
+## Project Structure
 
-- **`AppComponent`** → Base layout with header and calendar.  
-- **`CalendarComponent`** → Monthly grid, filters, and event listing.  
-- **`EventDialogComponent`** → Modal dialog with event details.  
-- **`TimelyService`** → Service handling API communication with Timely.  
-- **`ApiKeyInterceptor`** → HTTP interceptor to inject API key automatically.  
-- **Models** (`event.ts`, `calendar-day.model.ts`, etc.) with strong TypeScript typing.  
+```txt
+src/
+├── app/
+│   ├── components/
+│   │   ├── calendar/
+│   │   └── event-dialog/
+│   ├── models/
+│   ├── services/
+│   └── interceptors/
+├── assets/
+└── environments/
+```
 
-## 🔗 API Integration
+## Main Components
 
-1. **Get calendar settings**  
-   `POST https://timelyapp.time.ly/api/calendars/info`  
+### AppComponent
 
-2. **Fetch events**  
-   `GET https://timelyapp.time.ly/api/calendars/{CALENDAR_ID}/events`  
+Base layout of the application.
 
-> The project uses `ApiKeyInterceptor` to automatically add the `X-Api-Key` header to all requests.  
+### CalendarComponent
 
-## 🧪 Testing
+Responsible for the monthly calendar view, event listing, filters and navigation controls.
 
-- `*.spec.ts` files include unit tests for main components (`App`, `Calendar`, `EventDialog`).  
-- Uses `HttpClientTestingModule` and `HttpTestingController` for request mocking.  
-- Code coverage ensured with **coverage report**.  
+### EventDialogComponent
 
-## ▶️ Getting Started
+Modal used to display detailed information about a selected event.
+
+### TimelyService
+
+Handles communication with the Timely API.
+
+### ApiKeyInterceptor
+
+Adds the required API key header to requests automatically.
+
+## API Integration
+
+The application consumes Timely API endpoints to load calendar information and events.
+
+Main requests used by the application:
+
+```txt
+POST https://timelyapp.time.ly/api/calendars/info
+GET https://timelyapp.time.ly/api/calendars/{CALENDAR_ID}/events
+```
+
+The `ApiKeyInterceptor` adds the `X-Api-Key` header to API requests.
+
+## Environment Configuration
+
+The API configuration is located in the Angular environment files:
+
+```txt
+src/environments/environment.ts
+src/environments/environment.prod.ts
+```
+
+Before using the project with another Timely calendar, update the following values:
+
+```ts
+export const environment = {
+  production: false,
+  apiBase: 'https://timelyapp.time.ly',
+  apiKey: 'YOUR_API_KEY',
+  calendarUrl: 'YOUR_CALENDAR_URL'
+};
+```
+
+For production builds, apply the same configuration to `environment.prod.ts`.
+
+## Getting Started
 
 ### Prerequisites
-- Node.js v14+  
-- Angular CLI v13+  
+
+- Node.js 14 or higher
+- Angular CLI 13 or higher
+- npm
 
 ### Installation
+
 ```bash
 npm install
 ```
 
-### Run in development mode
+### Run the development server
+
+```bash
+npm start
+```
+
+Or:
+
 ```bash
 ng serve
 ```
-Open [http://localhost:4200](http://localhost:4200).
 
-### Run tests
+Open the application at:
+
+```txt
+http://localhost:4200
+```
+
+## Running Tests
+
+```bash
+npm test
+```
+
+To run tests with coverage:
+
 ```bash
 ng test --code-coverage
 ```
 
-### Build for production
+## Build
+
 ```bash
-ng build --prod
+npm run build
 ```
 
-## 📌 Notes
+The build files will be generated in the `dist/` directory.
 
-- All code and comments are written in English following best practices.  
-- The UI was designed to be **clean, responsive, and accessible**.  
-- Project is versioned with **Git**.  
+## Notes
 
-## 🔮 Future Improvements
+- The project uses strongly typed models for calendar and event data.
+- The interface was designed to work across different screen sizes.
+- Loading and error states were implemented to improve user experience during API requests.
+- Unit tests were added for the main application parts.
 
-- Implement **lazy loading** for events to handle large datasets efficiently.  
-- Add **dark mode** support.  
-- Provide multiple calendar layouts (e.g., **week view, agenda view**) in addition to the monthly view.  
-- Add **internationalization (i18n)** support for multiple languages.  
-- Extend filtering with more options (e.g., categories, location, status).  
-- Integrate with **CI/CD pipelines** for automated builds and tests.  
+## Future Improvements
+
+- Add lazy loading for large event lists
+- Add dark mode
+- Add week and agenda calendar views
+- Add internationalization support
+- Add location and status filters
+- Add CI/CD workflow for automated builds and tests
+
