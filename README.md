@@ -4,6 +4,12 @@ Angular application for browsing events from the Timely API in an interactive mo
 
 The project was built as a front-end test, with focus on API integration, filtering, reusable components, loading/error handling and a responsive interface.
 
+## Deploy
+
+Access the application:
+
+https://cardosorepository.github.io/Timely-Calendar/
+
 ## Features
 
 - Monthly calendar view for event browsing
@@ -178,3 +184,8 @@ The build files will be generated in the `dist/` directory.
 - Add location and status filters
 - Add CI/CD workflow for automated builds and tests
 
+## Deployment
+
+This project is deployed with GitHub Pages using GitHub Actions.
+
+Every push to the `main` branch triggers a production build and publishes the application automatically.
