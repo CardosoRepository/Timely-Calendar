@@ -4,6 +4,10 @@ Angular application for browsing events from the Timely API in an interactive mo
 
 The project was built as a front-end test, with focus on API integration, filtering, reusable components, loading/error handling and a responsive interface.
 
+## Preview
+
+![Timely Calendar preview](src/assets/readme/preview.png)
+
 ## Deploy
 
 Access the application:
